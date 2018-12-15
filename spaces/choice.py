@@ -20,7 +20,7 @@ class Choice(gym.Space):
         return as_int in self.choice
 
     def __repr__(self):
-        return "Choice(%d)" % self.choice
+        return "Choice({})" % self.choice
 
     def __eq__(self, other):
         return self.choice == other.choice
