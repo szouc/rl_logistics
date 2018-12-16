@@ -91,7 +91,7 @@ def q_learning(env, num_episodes, discount_factor=1.0, alpha=0.5, epsilon=0.1):
             action_index = np.random.choice(
                 np.arange(len(action_probs.flatten())), p=p)
             action = np.unravel_index(action_index, env.action_space.nvec)
-            next_state, reward, done, info = env.step(np.array(action))
+            next_state, reward, done, _= env.step(np.array(action))
 
             # Update statistics
             stats.episode_rewards[i_episode] += reward
