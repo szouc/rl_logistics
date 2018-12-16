@@ -1,15 +1,14 @@
-count = 0
-def rsum(l):
-    global count
-    count += 1
-    length = len(l)
-    if length > 0:
-        count += 1
-        last = l[-1]
-        l.pop()
-        return rsum(l) + last
-    count += 1
-    print(count)
-    return 0
+from learning.q_learning import q_learning
+from envs import LogisticsEnv
+from utils import plotting
 
-rsum([1, 2, 3, 4, 5])
+orders = 10
+vehicles = 10
+kinds = 3
+
+env = LogisticsEnv(orders=orders, vehicles=vehicles, kinds=kinds)
+
+Q, stats = q_learning(env=env, num_episodes=100000,
+                      discount_factor=0.9, alpha=0.7, epsilon=0.1)
+
+plotting.plot_episode_stats(stats)

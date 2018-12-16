@@ -5,7 +5,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 
-from spaces import Choice
+kinds = [2, 3, 6]
 
 
 class LogisticsEnv(gym.Env):
@@ -14,15 +14,16 @@ class LogisticsEnv(gym.Env):
         'video.frames_per_second': 30
     }
 
-    def __init__(self, vehicles=10, orders=10, vehicle_beta=0.5, driver_beta=0.5):
+    def __init__(self, orders=10, vehicles=10, kinds=3, vehicle_beta=0.5, driver_beta=0.5):
         self.vehicles = vehicles
         self.orders = orders
+        self.kinds = kinds
         self.vehicle_beta = vehicle_beta
         self.driver_beta = driver_beta
-        self.action_space = spaces.Tuple(
-            (spaces.MultiDiscrete((self.orders, self.vehicles)), Choice([2, 3, 6])))
+        self.action_space = spaces.MultiDiscrete(
+            (self.orders, self.vehicles, self.kinds))
         self.observation_space = spaces.Tuple((spaces.MultiBinary(
-            self.orders), spaces.MultiBinary(self.vehicles), spaces.MultiDiscrete([7 for _ in range(self.vehicles)])))
+            self.orders), spaces.MultiDiscrete([self.kinds + 1 for _ in range(self.vehicles)]), spaces.MultiDiscrete([7 for _ in range(self.vehicles)])))
 
         self.seed()
         self.reset()
@@ -35,13 +36,14 @@ class LogisticsEnv(gym.Env):
         assert self.action_space.contains(
             action), "%r (%s) invalid" % (action, type(action))
 
-        (order_index, vehicle_index), cost = action
+        (order_index, vehicle_index, kind_index) = action
         order_flags, vehicle_flags, vehicle_costs = self.state
+        cost = kinds[kind_index]
 
         if order_flags[order_index] == 1:
-            reward = 0
+            reward = -10
         elif vehicle_costs[vehicle_index] + cost > 6:
-            reward = 0
+            reward = -10
         else:
             vehicle_times = vehicle_flags[vehicle_index]
             vi = vehicle_costs[vehicle_index]
@@ -49,7 +51,7 @@ class LogisticsEnv(gym.Env):
             driver_weight = cost / (cost + vi)
             reward = -1 * 1 / (1 + math.e ** (-vehicle_times * vehicle_weight * self.vehicle_beta)) + - \
                 1 * 1 / (1 + math.e ** (vehicle_times *
-                                        driver_weight * self.driver_beta))
+                                            driver_weight * self.driver_beta))
 
             order_flags[order_index] = 1
             vehicle_flags[vehicle_index] += 1
@@ -57,14 +59,20 @@ class LogisticsEnv(gym.Env):
             self.state = (order_flags, vehicle_flags, vehicle_costs)
 
         done = self._terminal()
+        # if reward != 0:
+        #     print(self.state, reward, sep='____')
 
-        return np.array(self.state), reward, done, {}
+        return self._get_obs(self.state), reward, done, {}
+
+    def _get_obs(self, state):
+        tuple_state = tuple(tuple(s) for s in state)
+        return tuple_state
 
     def reset(self):
         self.state = (np.zeros((self.orders,), dtype=int),
                       np.zeros((self.vehicles,), dtype=int),
                       np.zeros((self.vehicles,), dtype=int))
-        return np.array(self.state)
+        return self._get_obs(self.state)
 
     def _terminal(self):
         s, _, v = self.state
