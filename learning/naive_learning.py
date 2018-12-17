@@ -1,13 +1,9 @@
 import numpy as np
 import sys
 import itertools
+from collections import defaultdict
 
 from utils.plotting import EpisodeStats
-
-
-def naive_policy(state):
-    (order_flags, vehicle_flags, vehicle_costs) = state
-    return state
 
 
 def naive_learning(env, num_episodes):
@@ -24,15 +20,19 @@ def naive_learning(env, num_episodes):
             sys.stdout.flush()
 
         # Reset the environment and pick the first action
-        state = env.reset()
+        env.reset()
 
         # One step in the environment
         # total_reward = 0.0
         for t in itertools.count():
 
             # Take a step
-            action = naive_policy(state)
-            next_state, reward, done, _ = env.step(np.array(action))
+            action_probs = np.ones(env.action_space.nvec, dtype=float)
+            action_index = np.random.choice(
+                np.arange(len(action_probs.flatten())))
+            action = np.unravel_index(action_index, env.action_space.nvec)
+            # print(action)
+            _, reward, done, _ = env.step(np.array(action))
 
             # Update statistics
             stats.episode_rewards[i_episode] += reward
@@ -40,9 +40,5 @@ def naive_learning(env, num_episodes):
 
             if done:
                 break
-
-            state = next_state
-
-        # print(Q)
 
     return stats
