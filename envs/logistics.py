@@ -41,9 +41,9 @@ class LogisticsEnv(gym.Env):
         cost = kinds[kind_index]
 
         if order_flags[order_index] == 1:
-            reward = -100
+            reward = -1
         elif vehicle_costs[vehicle_index] + cost > 6:
-            reward = -100
+            reward = -1
         else:
             vehicle_times = vehicle_flags[vehicle_index]
             vi = vehicle_costs[vehicle_index]
@@ -54,7 +54,7 @@ class LogisticsEnv(gym.Env):
                                 vehicle_weight * self.vehicle_beta)) - 0.5
             driver_state_diff = 0.5 - 1 / (1 + math.e ** (vehicle_times *
                                                           driver_weight * self.driver_beta))
-            reward = -100 + 100 * (vehicle_state_diff + driver_state_diff)
+            reward = -1 + vehicle_state_diff + driver_state_diff
 
             order_flags[order_index] = 1
             vehicle_flags[vehicle_index] += 1
