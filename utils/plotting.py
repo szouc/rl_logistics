@@ -5,6 +5,9 @@ from collections import namedtuple
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+
 EpisodeStats = namedtuple("Stats", ["episode_lengths", "episode_rewards"])
 
 
@@ -109,9 +112,9 @@ def plot_episode_stats(stats, smoothing_window=10, noshow=False):
 def plot_many_episode_stats(stats_q, stats_n, smoothing_window=10, noshow=False):
     # Plot the episode length over time
     fig1 = plt.figure(figsize=(10, 5))
-    lengths_smoothed_q = pd.Series(stats_q.episode_lengths).rolling(
+    lengths_smoothed_q = pd.Series(stats_q.episode_lengths[20000:]).rolling(
         smoothing_window, min_periods=smoothing_window).mean()
-    lengths_smoothed_n = pd.Series(stats_n.episode_lengths).rolling(
+    lengths_smoothed_n = pd.Series(stats_n.episode_lengths[20000:]).rolling(
         smoothing_window, min_periods=smoothing_window).mean()
     plt.plot(lengths_smoothed_q, label='Q-Learning')
     plt.plot(lengths_smoothed_n, label='随机分配')
@@ -126,9 +129,9 @@ def plot_many_episode_stats(stats_q, stats_n, smoothing_window=10, noshow=False)
 
     # Plot the episode reward over time
     fig2 = plt.figure(figsize=(10, 5))
-    rewards_smoothed_q = pd.Series(stats_q.episode_rewards).rolling(
+    rewards_smoothed_q = pd.Series(stats_q.episode_rewards[20000:]).rolling(
         smoothing_window, min_periods=smoothing_window).mean()
-    rewards_smoothed_n = pd.Series(stats_n.episode_rewards).rolling(
+    rewards_smoothed_n = pd.Series(stats_n.episode_rewards[20000:]).rolling(
         smoothing_window, min_periods=smoothing_window).mean()
     plt.plot(rewards_smoothed_q, label='Q-Learning')
     plt.plot(rewards_smoothed_n, label='随机分配')

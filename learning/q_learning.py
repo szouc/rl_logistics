@@ -13,7 +13,7 @@ def get_actions_number(action_space):
     return actions_number
 
 
-def make_epsilon_greedy_policy(Q, epsilon, dA, nA):
+def make_epsilon_greedy_policy(Q, dA, nA):
     """
     Creates an epsilon-greedy policy based on a given Q-function and epsilon.
 
@@ -29,7 +29,7 @@ def make_epsilon_greedy_policy(Q, epsilon, dA, nA):
         the probabilities for each action in the form of a numpy array of length nA.
 
     """
-    def policy_fn(observation):
+    def policy_fn(observation, epsilon):
         A = np.ones(dA, dtype=float) * epsilon / nA
         best_action_index = np.argmax(Q[observation])
         best_action = np.unravel_index(best_action_index, dA)
@@ -38,7 +38,7 @@ def make_epsilon_greedy_policy(Q, epsilon, dA, nA):
     return policy_fn
 
 
-def q_learning(env, num_episodes, discount_factor=1.0, alpha=0.5, epsilon=0.1):
+def q_learning(env, num_episodes, discount_factor=1.0, alpha=0.5):
     """
     Q-Learning algorithm: Off-policy TD control. Finds the optimal greedy policy
     while following an epsilon-greedy policy
@@ -69,7 +69,7 @@ def q_learning(env, num_episodes, discount_factor=1.0, alpha=0.5, epsilon=0.1):
 
     # The policy we're following
     policy = make_epsilon_greedy_policy(
-        Q, epsilon, env.action_space.nvec, actions_number)
+        Q, env.action_space.nvec, actions_number)
 
     for i_episode in range(num_episodes):
         # Print out which episode we're on, useful for debugging.
@@ -85,9 +85,8 @@ def q_learning(env, num_episodes, discount_factor=1.0, alpha=0.5, epsilon=0.1):
         for t in itertools.count():
 
             # Take a step
-            action_probs = policy(state)
+            action_probs = policy(state, 1 / (1 + t))
             p = action_probs.flatten()
-            # p /= p.sum()
             action_index = np.random.choice(
                 np.arange(len(action_probs.flatten())), p=p)
             action = np.unravel_index(action_index, env.action_space.nvec)
@@ -110,8 +109,6 @@ def q_learning(env, num_episodes, discount_factor=1.0, alpha=0.5, epsilon=0.1):
                 break
 
             state = next_state
-
-        # print(Q)
 
     return Q, stats
 
