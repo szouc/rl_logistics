@@ -11,7 +11,8 @@ def naive_learning(env, num_episodes):
     # Keeps track of useful statistics
     stats = EpisodeStats(
         episode_lengths=np.zeros(num_episodes),
-        episode_rewards=np.zeros(num_episodes))
+        episode_rewards=np.zeros(num_episodes),
+        episode_restVehicles=np.zeros(num_episodes))
 
     for i_episode in range(num_episodes):
         # Print out which episode we're on, useful for debugging.
@@ -32,13 +33,15 @@ def naive_learning(env, num_episodes):
                 np.arange(len(action_probs.flatten())))
             action = np.unravel_index(action_index, env.action_space.nvec)
             # print(action)
-            _, reward, done, _ = env.step(np.array(action))
+            next_state, reward, done, _ = env.step(np.array(action))
 
             # Update statistics
             stats.episode_rewards[i_episode] += reward
             stats.episode_lengths[i_episode] = t
 
             if done:
+                _, _, vehicle_flags, _ = next_state
+                stats.episode_restVehicles[i_episode] = vehicle_flags.count(0)
                 break
 
     return stats

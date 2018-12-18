@@ -21,9 +21,9 @@ class LogisticsEnv(gym.Env):
         self.vehicle_beta = vehicle_beta
         self.driver_beta = driver_beta
         self.action_space = spaces.MultiDiscrete(
-            (self.orders, self.vehicles, self.kinds))
+            (self.orders, self.vehicles))
         self.observation_space = spaces.Tuple((spaces.MultiBinary(
-            self.orders), spaces.MultiDiscrete([self.kinds + 1 for _ in range(self.vehicles)]), spaces.MultiDiscrete([7 for _ in range(self.vehicles)])))
+            self.orders), spaces.MultiDiscrete([self.kinds + 1 for _ in range(self.orders)]), spaces.MultiDiscrete([self.orders + 1 for _ in range(self.vehicles)]), spaces.MultiDiscrete([7 for _ in range(self.vehicles)])))
 
         self.seed()
         self.reset()
@@ -36,14 +36,15 @@ class LogisticsEnv(gym.Env):
         assert self.action_space.contains(
             action), "%r (%s) invalid" % (action, type(action))
 
-        (order_index, vehicle_index, kind_index) = action
-        (order_flags, vehicle_flags, vehicle_costs) = self.state
-        cost = kinds[kind_index]
+
+        (order_index, vehicle_index) = action
+        (order_flags, order_costs, vehicle_flags, vehicle_costs) = self.state
+        cost = kinds[order_costs[order_index]]
 
         if order_flags[order_index] == 1:
-            reward = -1.0
+            reward = -2.0
         elif vehicle_costs[vehicle_index] + cost > 6:
-            reward = -1.0
+            reward = -2.0
         else:
             vehicle_times = vehicle_flags[vehicle_index]
             vi = vehicle_costs[vehicle_index]
@@ -52,14 +53,14 @@ class LogisticsEnv(gym.Env):
             vehicle_state_diff = 1.0 / \
                 (1.0 + math.e ** (-vehicle_times *
                                   vehicle_weight * self.vehicle_beta)) - 0.5
-            driver_state_diff = 0.5 - 1.0 / (1.0 + math.e ** (vehicle_times *
-                                                              driver_weight * self.driver_beta))
+            driver_state_diff = 1.0 / (1.0 + math.e ** (vehicle_times *
+                                                        driver_weight * self.driver_beta)) - 0.5
             reward = -1.0 + vehicle_state_diff + driver_state_diff
 
             order_flags[order_index] = 1
             vehicle_flags[vehicle_index] += 1
             vehicle_costs[vehicle_index] += cost
-            self.state = (order_flags, vehicle_flags, vehicle_costs)
+            self.state = (order_flags, order_costs, vehicle_flags, vehicle_costs)
 
         done = self._terminal()
         # if reward != 0:
@@ -73,10 +74,17 @@ class LogisticsEnv(gym.Env):
 
     def reset(self):
         self.state = (np.zeros((self.orders,), dtype=int),
+                      np.random.randint(self.kinds, size=self.orders, dtype=int),
                       np.zeros((self.vehicles,), dtype=int),
                       np.zeros((self.vehicles,), dtype=int))
         return self._get_obs(self.state)
 
     def _terminal(self):
-        s, _, v = self.state
-        return sum(s) == self.orders or min(v) >= 5
+        o, o_c, _, v_c = self.state
+        done = False
+        rest_order_cost_index = [i for i in range(len(o)) if o[i] == 0]
+        # rest_order_cost_index = np.nonzero(np.bitwise_and(np.invert(o), o_c))
+        for i in rest_order_cost_index:
+            if min(v_c) + kinds[o_c[i]] > 6:
+                done = True
+        return sum(o) == self.orders or min(v_c) >= 5 or done 
