@@ -9,24 +9,26 @@ orders = 3
 vehicles = 5
 kinds = 3
 
-num_episodes = 1000
-smoothing_window = 20
+num_episodes = 20000
+smoothing_window = 2000
 truncation = 0
 
-env = LogisticsEnv(orders=orders, vehicles=vehicles, kinds=kinds, vehicle_beta=0.5, driver_beta=0.5)
+env = LogisticsEnv(orders=orders, vehicles=vehicles,
+                   kinds=kinds, vehicle_beta=0.5, driver_beta=0.5)
 # env_v = LogisticsEnv(orders=orders, vehicles=vehicles, kinds=kinds, vehicle_beta=0.9, driver_beta=0.1)
 # env_d = LogisticsEnv(orders=orders, vehicles=vehicles, kinds=kinds, vehicle_beta=0.1, driver_beta=0.9)
 
 Q, stats = q_learning(env=env, num_episodes=num_episodes,
-                        discount_factor=0.9, alpha=0.5)
+                      discount_factor=0.9, alpha=0.5)
 
 # Q_v, stats_v = q_learning(env=env_v, num_episodes=num_episodes,
 #                         discount_factor=0.9, alpha=0.5)
-                        
+
 # Q_d, stats_d = q_learning(env=env_d, num_episodes=num_episodes,
 #                         discount_factor=0.9, alpha=0.5)
 
-rewards_stats_q, rewards_stats_n = evaluate_rewards(env, Q)
+rewards_stats_q, rewards_stats_n, _, _ = evaluate_rewards(
+    env, Q, num_episodes=100)
 # rewards_stats_v = evaluate_rewards(env_v, Q_v)
 # rewards_stats_d = evaluate_rewards(env_v, Q_d)
 

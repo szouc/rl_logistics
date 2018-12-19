@@ -14,23 +14,34 @@ EpisodeStats = namedtuple(
 
 RewardStats = namedtuple("Stats", ["rewards", 'lengths'])
 
+
 def plot_rewards_stats(stats_q, stats_n, noshow=False):
-    a_q, b_q = [a for a, b in stats_q], [b for a, b in stats_q]
-    a_n, b_n = [a for a, b in stats_n], [b for a, b in stats_n]
     # Plot the episode length over time
     fig1 = plt.figure(figsize=(10, 5))
-    plt.plot(a_q, b_q, '-', label='Q-learning')
-    plt.plot(a_n, b_n, ':', label='随机均匀分配')
-    plt.xlabel("时间步")
+    plt.plot(stats_q.episode_rewards, '-', label='Q-learning')
+    plt.plot(stats_n.episode_rewards, ':', label='随机均匀分配')
+    plt.xlabel("片段")
     plt.ylabel("收益")
-    plt.title("一个片段中每个时间步的收益对比")
+    plt.title("每个片段的收益对比")
     plt.legend()
     if noshow:
         plt.close(fig1)
     else:
         plt.show(fig1)
 
-    return fig1
+    fig2 = plt.figure(figsize=(10, 5))
+    plt.plot(stats_q.episode_lengths, '-', label='Q-learning')
+    plt.plot(stats_n.episode_lengths, ':', label='随机均匀分配')
+    plt.xlabel("片段")
+    plt.ylabel("时间步")
+    plt.title("每个片段含有的时间步")
+    plt.legend()
+    if noshow:
+        plt.close(fig2)
+    else:
+        plt.show(fig2)
+
+    return fig1, fig2
 
 
 def plot_episode_stats(stats, smoothing_window=10, truncation=0, noshow=False):
@@ -77,6 +88,7 @@ def plot_episode_stats(stats, smoothing_window=10, truncation=0, noshow=False):
         plt.show(fig3)
 
     return fig1, fig2, fig3
+
 
 def plot_two_episode_stats(stats_q, stats_n, smoothing_window=10, truncation=0, noshow=False):
     # Plot the episode length over time

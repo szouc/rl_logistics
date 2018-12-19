@@ -36,7 +36,6 @@ class LogisticsEnv(gym.Env):
         assert self.action_space.contains(
             action), "%r (%s) invalid" % (action, type(action))
 
-
         (order_index, vehicle_index) = action
         (order_flags, order_costs, vehicle_flags, vehicle_costs) = self.state
         cost = kinds[order_costs[order_index]]
@@ -60,7 +59,8 @@ class LogisticsEnv(gym.Env):
             order_flags[order_index] = 1
             vehicle_flags[vehicle_index] += 1
             vehicle_costs[vehicle_index] += cost
-            self.state = (order_flags, order_costs, vehicle_flags, vehicle_costs)
+            self.state = (order_flags, order_costs,
+                          vehicle_flags, vehicle_costs)
 
         done = self._terminal()
         # if reward != 0:
@@ -74,10 +74,14 @@ class LogisticsEnv(gym.Env):
 
     def reset(self):
         self.state = (np.zeros((self.orders,), dtype=int),
-                      np.random.randint(self.kinds, size=self.orders, dtype=int),
+                      np.random.randint(
+                          self.kinds, size=self.orders, dtype=int),
                       np.zeros((self.vehicles,), dtype=int),
                       np.zeros((self.vehicles,), dtype=int))
         return self._get_obs(self.state)
+
+    def initial(self, state):
+        self.state = np.array([np.array(s) for s in state])
 
     def _terminal(self):
         o, o_c, _, v_c = self.state
@@ -87,4 +91,4 @@ class LogisticsEnv(gym.Env):
         for i in rest_order_cost_index:
             if min(v_c) + kinds[o_c[i]] > 6:
                 done = True
-        return sum(o) == self.orders or min(v_c) >= 5 or done 
+        return sum(o) == self.orders or min(v_c) >= 5 or done

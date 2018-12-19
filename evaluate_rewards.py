@@ -1,6 +1,7 @@
 import numpy as np
 import itertools
-from utils.plotting import RewardStats
+from utils.plotting import EpisodeStats
+
 
 def get_actions_number(action_space):
     actions_number = 1
@@ -33,57 +34,73 @@ def make_epsilon_greedy_policy(Q, dA, nA):
         return A
     return policy_fn
 
-def evaluate_rewards(env, Q):
+
+def evaluate_rewards(env, Q, num_episodes=100):
 
     actions_number = get_actions_number(env.action_space)
-    
+
     policy = make_epsilon_greedy_policy(
         Q, env.action_space.nvec, actions_number)
 
-    # lengths = len(np.zeros(env.action_space.nvec, dtype=float).flatten())
-    rewards_q = []
-    rewards_sum_q = 0
-    rewards_n = []
-    rewards_sum_n = 0
-    state = env.reset()
-    for t in itertools.count():
-        action_probs = policy(state, 1 / 10 )
-        p = action_probs.flatten()
+    stats_q = EpisodeStats(
+        episode_lengths=np.zeros(num_episodes),
+        episode_rewards=np.zeros(num_episodes),
+        episode_restVehicles=np.zeros(num_episodes))
 
-        action_index = np.random.choice(
-            np.arange(len(action_probs.flatten())), p=p)
-        action = np.unravel_index(action_index, env.action_space.nvec)
-        next_state, reward, done, _ = env.step(np.array(action))
+    stats_n = EpisodeStats(
+        episode_lengths=np.zeros(num_episodes),
+        episode_rewards=np.zeros(num_episodes),
+        episode_restVehicles=np.zeros(num_episodes))
 
-        # Update statistics
-        rewards_sum_q += reward
-        rewards_q.append((t, rewards_sum_q))
+    for i_episode in range(num_episodes):
+        rewards_q = []
+        rewards_sum_q = 0
+        rewards_n = []
+        rewards_sum_n = 0
+        state = env.reset()
+        state_bak = state[:]
+        for t in itertools.count():
+            action_probs = policy(state, 1 / (1 + i_episode))
+            p = action_probs.flatten()
 
-        if done:
-            break
+            action_index = np.random.choice(
+                np.arange(len(action_probs.flatten())), p=p)
+            action = np.unravel_index(action_index, env.action_space.nvec)
+            next_state, reward, done, _ = env.step(np.array(action))
 
-        state = next_state
-    
-    state = env.reset()
-    for t in itertools.count():
-        # Take a step
-        action_probs = np.ones(env.action_space.nvec, dtype=float)
-        action_index = np.random.choice(
-            np.arange(len(action_probs.flatten())))
-        action = np.unravel_index(action_index, env.action_space.nvec)
-        # print(action)
-        next_state, reward, done, _ = env.step(np.array(action))
+            # Update statistics
+            stats_q.episode_rewards[i_episode] += reward
+            stats_q.episode_lengths[i_episode] = t
+            rewards_sum_q += reward
+            rewards_q.append((t, rewards_sum_q))
 
-        # Update statistics
-        rewards_sum_n += reward
-        rewards_n.append((t, rewards_sum_n))
+            if done:
+                break
 
-        if done:
-            break
+            state = next_state
 
-        state = next_state
+        env.initial(state_bak)
+        for t in itertools.count():
+            # Take a step
+            action_probs = np.ones(env.action_space.nvec, dtype=float)
+            action_index = np.random.choice(
+                np.arange(len(action_probs.flatten())))
+            action = np.unravel_index(action_index, env.action_space.nvec)
+            # print(action)
+            next_state, reward, done, _ = env.step(np.array(action))
 
-    stats_q = np.array(rewards_q)
-    stats_n = np.array(rewards_n)
+            # Update statistics
+            stats_n.episode_rewards[i_episode] += reward
+            stats_n.episode_lengths[i_episode] = t
+            rewards_sum_n += reward
+            rewards_n.append((t, rewards_sum_n))
 
-    return stats_q, stats_n
+            if done:
+                break
+
+            state = next_state
+
+        stats_e_q = np.array(rewards_q)
+        stats_e_n = np.array(rewards_n)
+
+    return stats_q, stats_n, stats_e_q, stats_e_n
