@@ -2,11 +2,9 @@ from learning.q_learning import q_learning
 from learning.naive_learning import naive_learning
 from learning.greedy_learning import greedy_costs_learning, greedy_times_learning
 from envs import LogisticsEnv
-from utils import plotting
-from evaluate.rewards import evaluate_rewards
 
 
-def evaluate_stats_contrast(orders=5, vehicles=3, kinds=3, num_episodes=2000, smoothing_window=100, truncation=0):
+def evaluate_stats_contrast(orders=5, vehicles=3, kinds=3, num_episodes=2000):
 
     env = LogisticsEnv(orders=orders, vehicles=vehicles,
                        kinds=kinds, vehicle_beta=0.5, driver_beta=0.5)

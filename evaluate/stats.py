@@ -1,8 +1,6 @@
 from learning.q_learning import q_learning
 from learning.naive_learning import naive_learning
 from envs import LogisticsEnv
-from utils import plotting
-from evaluate.rewards import evaluate_rewards
 
 
 def evaluate_stats(orders=5, vehicles=3, kinds=3, num_episodes=2000, smoothing_window=100, truncation=0):

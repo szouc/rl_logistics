@@ -35,7 +35,7 @@ def make_epsilon_greedy_policy(Q, dA, nA):
     return policy_fn
 
 
-def evaluate_rewards(env, Q, num_episodes=100):
+def control_rewards(env, Q, num_episodes=100):
 
     actions_number = get_actions_number(env.action_space)
 
@@ -53,10 +53,6 @@ def evaluate_rewards(env, Q, num_episodes=100):
         episode_restVehicles=np.zeros(num_episodes))
 
     for i_episode in range(num_episodes):
-        rewards_q = []
-        rewards_sum_q = 0
-        rewards_n = []
-        rewards_sum_n = 0
         state = env.reset()
         state_bak = state[:]
         for t in itertools.count():
@@ -71,8 +67,6 @@ def evaluate_rewards(env, Q, num_episodes=100):
             # Update statistics
             stats_q.episode_rewards[i_episode] += reward
             stats_q.episode_lengths[i_episode] = t
-            rewards_sum_q += reward
-            rewards_q.append((t, rewards_sum_q))
 
             if done:
                 break
@@ -92,15 +86,10 @@ def evaluate_rewards(env, Q, num_episodes=100):
             # Update statistics
             stats_n.episode_rewards[i_episode] += reward
             stats_n.episode_lengths[i_episode] = t
-            rewards_sum_n += reward
-            rewards_n.append((t, rewards_sum_n))
 
             if done:
                 break
 
             state = next_state
 
-        stats_e_q = np.array(rewards_q)
-        stats_e_n = np.array(rewards_n)
-
-    return stats_q, stats_n, stats_e_q, stats_e_n
+    return stats_q, stats_n
