@@ -40,7 +40,7 @@ class LogisticsEnv(gym.Env):
         (order_flags, order_costs, vehicle_flags, vehicle_costs) = self.state
         cost = kinds[order_costs[order_index]]
 
-        if order_flags[order_index] == 1:
+        if order_flags[order_index] == 0:
             reward = -2.0
         elif vehicle_costs[vehicle_index] + cost > 6:
             reward = -2.0
@@ -56,7 +56,7 @@ class LogisticsEnv(gym.Env):
                                                         driver_weight * self.driver_beta)) - 0.5
             reward = -1.0 + vehicle_state_diff + driver_state_diff
 
-            order_flags[order_index] = 1
+            order_flags[order_index] = 0
             vehicle_flags[vehicle_index] += 1
             vehicle_costs[vehicle_index] += cost
             self.state = (order_flags, order_costs,
@@ -73,7 +73,7 @@ class LogisticsEnv(gym.Env):
         return tuple_state
 
     def reset(self):
-        self.state = (np.zeros((self.orders,), dtype=int),
+        self.state = (np.ones((self.orders,), dtype=int),
                       np.random.randint(
                           self.kinds, size=self.orders, dtype=int),
                       np.zeros((self.vehicles,), dtype=int),
@@ -85,10 +85,13 @@ class LogisticsEnv(gym.Env):
 
     def _terminal(self):
         o, o_c, _, v_c = self.state
-        done = False
-        rest_order_cost_index = [i for i in range(len(o)) if o[i] == 0]
+        if sum(o) == 0:
+            return True
+        if min(v_c) >= 5:
+            return True
+        rest_order_cost_dim = np.nonzero(o)
         # rest_order_cost_index = np.nonzero(np.bitwise_and(np.invert(o), o_c))
-        for i in rest_order_cost_index:
-            if min(v_c) + kinds[o_c[i]] > 6:
-                done = True
-        return sum(o) == self.orders or min(v_c) >= 5 or done
+        min_rest_cost = kinds[min(o_c[rest_order_cost_dim])]
+        if min(v_c) + min_rest_cost > 6:
+            return True
+        return False

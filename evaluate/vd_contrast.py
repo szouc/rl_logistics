@@ -6,7 +6,7 @@ from utils import plotting
 from evaluate.rewards import evaluate_rewards
 
 
-def evaluate_stats_contrast(orders=5, vehicles=3, kinds=3, num_episodes=2000, smoothing_window=100, truncation=0):
+def evaluate_vd_stats_contrast(orders=5, vehicles=3, kinds=3, num_episodes=2000, smoothing_window=100, truncation=0):
 
     env = LogisticsEnv(orders=orders, vehicles=vehicles,
                        kinds=kinds, vehicle_beta=0.5, driver_beta=0.5)
