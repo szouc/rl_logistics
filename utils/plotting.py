@@ -15,6 +15,56 @@ EpisodeStats = namedtuple(
 RewardStats = namedtuple("Stats", ["rewards", 'lengths'])
 
 
+def plot_four_rewards_stats(stats, stats_n, stats_g, stats_l, smoothing_window=1000, truncation=0, noshow=False):
+    # Plot the episode length over time
+    fig1 = plt.figure(figsize=(10, 5))
+    rewards_smoothed = pd.Series(stats.episode_rewards[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+    rewards_smoothed_n = pd.Series(stats_n.episode_rewards[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+    rewards_smoothed_g = pd.Series(stats_g.episode_rewards[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+    rewards_smoothed_l = pd.Series(stats_l.episode_rewards[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+
+    plt.plot(rewards_smoothed, '-', label='Q-learning')
+    plt.plot(rewards_smoothed_n, '--', label='随机均匀策略')
+    plt.plot(rewards_smoothed_g, ':', label='泊松分布策略')
+    plt.plot(rewards_smoothed_l, '-.', label='指数分布策略')
+    plt.xlabel("片段")
+    plt.ylabel("收益")
+    plt.title("每个片段的收益对比")
+    plt.legend()
+    if noshow:
+        plt.close(fig1)
+    else:
+        plt.show(fig1)
+
+    fig2 = plt.figure(figsize=(10, 5))
+    lengths_smoothed = pd.Series(stats.episode_lengths[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+    lengths_smoothed_n = pd.Series(stats_n.episode_lengths[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+    lengths_smoothed_g = pd.Series(stats_g.episode_lengths[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+    lengths_smoothed_l = pd.Series(stats_l.episode_lengths[truncation:]).rolling(
+        smoothing_window, min_periods=smoothing_window).mean()
+    plt.plot(lengths_smoothed, '-', label='Q-learning')
+    plt.plot(lengths_smoothed_n, '--', label='随机均匀分配')
+    plt.plot(lengths_smoothed_g, ':', label='泊松分布策略')
+    plt.plot(lengths_smoothed_l, '-.', label='指数分布策略')
+    plt.xlabel("片段")
+    plt.ylabel("时间步")
+    plt.title("每个片段含有的时间步")
+    plt.legend()
+    if noshow:
+        plt.close(fig2)
+    else:
+        plt.show(fig2)
+
+    return fig1, fig2
+
+
 def plot_rewards_stats(stats_q, stats_n, noshow=False):
     # Plot the episode length over time
     fig1 = plt.figure(figsize=(10, 5))
@@ -90,15 +140,15 @@ def plot_episode_stats(stats, smoothing_window=10, truncation=0, noshow=False):
     return fig1, fig2, fig3
 
 
-def plot_two_episode_stats(stats_q, stats_n, smoothing_window=10, truncation=0, noshow=False):
+def plot_two_episode_stats(stats_q, stats_n, label_q, label_n, smoothing_window=10, truncation=0, noshow=False):
     # Plot the episode length over time
     fig1 = plt.figure(figsize=(10, 5))
     lengths_smoothed_q = pd.Series(stats_q.episode_lengths[truncation:]).rolling(
         smoothing_window, min_periods=smoothing_window).mean()
     lengths_smoothed_n = pd.Series(stats_n.episode_lengths[truncation:]).rolling(
         smoothing_window, min_periods=smoothing_window).mean()
-    plt.plot(lengths_smoothed_q, '-', label='Q-Learning')
-    plt.plot(lengths_smoothed_n, ':', label='随机分配')
+    plt.plot(lengths_smoothed_q, '-', label=label_q)
+    plt.plot(lengths_smoothed_n, ':', label=label_n)
     plt.xlabel("片段")
     plt.ylabel("时间步")
     plt.title("每个片段的时间步数目")
@@ -114,8 +164,8 @@ def plot_two_episode_stats(stats_q, stats_n, smoothing_window=10, truncation=0, 
         smoothing_window, min_periods=smoothing_window).mean()
     rewards_smoothed_n = pd.Series(stats_n.episode_rewards[truncation:]).rolling(
         smoothing_window, min_periods=smoothing_window).mean()
-    plt.plot(rewards_smoothed_q, '-', label='Q-Learning')
-    plt.plot(rewards_smoothed_n, ':', label='随机分配')
+    plt.plot(rewards_smoothed_q, '-', label=label_q)
+    plt.plot(rewards_smoothed_n, ':', label=label_n)
     plt.xlabel("片段")
     plt.ylabel("收益 (平滑)")
     plt.title("每个片段的收益 (平滑窗口 {})".format(
@@ -129,9 +179,9 @@ def plot_two_episode_stats(stats_q, stats_n, smoothing_window=10, truncation=0, 
     # Plot time steps and episode number
     fig3 = plt.figure(figsize=(10, 5))
     plt.plot(np.cumsum(stats_q.episode_lengths),
-             np.arange(len(stats_q.episode_lengths)), '-', label='Q-Learning')
+             np.arange(len(stats_q.episode_lengths)), '-', label=label_q)
     plt.plot(np.cumsum(stats_n.episode_lengths),
-             np.arange(len(stats_n.episode_lengths)), ':', label='随机分配')
+             np.arange(len(stats_n.episode_lengths)), ':', label=label_n)
     plt.xlabel("时间步")
     plt.ylabel("片段")
     plt.title("时间步与片段关系")

@@ -3,14 +3,14 @@ from learning.naive_learning import naive_learning
 from learning.mc import mc_control_epsilon_greedy
 from envs import LogisticsEnv
 from utils import plotting
-from evaluate_rewards import evaluate_rewards
+from evaluate.rewards import evaluate_rewards
 
 orders = 3
 vehicles = 5
 kinds = 3
 
-num_episodes = 20000
-smoothing_window = 2000
+num_episodes = 50000
+smoothing_window = 5000
 truncation = 0
 
 env = LogisticsEnv(orders=orders, vehicles=vehicles,
