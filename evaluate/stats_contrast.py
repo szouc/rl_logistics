@@ -1,5 +1,6 @@
 from learning.q_learning import q_learning
 from learning.naive_learning import naive_learning
+from learning.imitation_learning import imitation_learning
 from learning.greedy_learning import greedy_costs_learning, greedy_times_learning
 from envs import LogisticsEnv
 
@@ -10,7 +11,7 @@ def evaluate_stats_contrast(orders=5, vehicles=3, kinds=3, num_episodes=2000):
                        kinds=kinds, vehicle_beta=0.5, driver_beta=0.5)
     Q, stats = q_learning(env=env, num_episodes=num_episodes,
                           discount_factor=0.9, alpha=0.5)
-    stats_n = naive_learning(env=env, num_episodes=num_episodes)
+    stats_n = imitation_learning(env=env, num_episodes=num_episodes)
     stats_g = greedy_costs_learning(env=env, num_episodes=num_episodes)
     stats_l = greedy_times_learning(env=env, num_episodes=num_episodes)
     # rewards_stats_q, rewards_stats_n, _, _ = evaluate_rewards(

@@ -29,10 +29,10 @@ def gaussian_learning(env, num_episodes):
 
             # Take a step
             action_probs = np.ones(env.action_space.nvec, dtype=float)
-            p = np.random.poisson(size=len(action_probs.flatten()))
-            p = p / p.sum() # normalize
+            p = np.random.poisson(size=len(action_probs.flat))
+            p = p / p.sum()  # normalize
             action_index = np.random.choice(
-                np.arange(len(action_probs.flatten())), p=p)
+                np.arange(len(action_probs.flat)), p=p)
             action = np.unravel_index(action_index, env.action_space.nvec)
             # print(action)
             next_state, reward, done, _ = env.step(np.array(action))
